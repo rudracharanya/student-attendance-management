@@ -1,0 +1,33 @@
+
+CREATE TABLE IF NOT EXISTS public.students (
+    student_id VARCHAR(30) PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    class_name VARCHAR(50) NOT NULL,
+    email VARCHAR(254),
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.attendance (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    student_id VARCHAR(30) NOT NULL
+        REFERENCES public.students(student_id) ON DELETE RESTRICT,
+    attendance_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    status VARCHAR(10) NOT NULL
+        CHECK (status IN ('Present', 'Absent')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (student_id, attendance_date),
+    CHECK (attendance_date <= CURRENT_DATE)
+);
+
+CREATE INDEX IF NOT EXISTS idx_students_name
+    ON public.students(name);
+
+CREATE INDEX IF NOT EXISTS idx_attendance_date
+    ON public.attendance(attendance_date);
+
+CREATE INDEX IF NOT EXISTS idx_attendance_student
+    ON public.attendance(student_id);
+
+ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.attendance ENABLE ROW LEVEL SECURITY;
